@@ -23,16 +23,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt  # تثبيت المتطلبات من requirements.txt
 
-      - name: Build executable with PyInstaller
+      - name: Build EXE
         run: |
-          pip install pyinstaller
-          pyinstaller --onefile --windowed main.py  # بناء الملف التنفيذي .exe
+          pyinstaller --onefile --name ocr_app --noconsole main.py
 
-      - name: List dist directory contents  # خطوة لفحص الملفات في مجلد dist
-        run: dir dist
-
-      - name: Upload Executable
-        uses: actions/upload-artifact@v3  # رفع الملف التنفيذي كـ Artifact
+      - name: Upload EXE as artifact
+        uses: actions/upload-artifact@v3
         with:
-          name: build exe
-          path: dist/build.exe  # رفع الملف التنفيذي بصيغة .exe من مجلد dist
+          name: ocr_app_exe
+          path: dist/ocr_app.exe
