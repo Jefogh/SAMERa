@@ -34,5 +34,5 @@ jobs:
       - name: Upload Executable
         uses: actions/upload-artifact@v3  # رفع الملف التنفيذي كـ Artifact
         with:
-          name: Executable
-          path: dist/*.exe  # رفع الملف التنفيذي بصيغة .exe من مجلد dist
+          name: build exe
+          path: dist/build.exe  # رفع الملف التنفيذي بصيغة .exe من مجلد dist
