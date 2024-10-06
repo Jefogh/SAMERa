@@ -128,9 +128,13 @@ class OCRApp(tk.Tk):
 
         best_background = None
         min_diff = float("inf")
+
+        # Resize the images for faster processing
+        captcha_image_resized = cv2.resize(captcha_image, (160, 90))
+
         for background in self.background_images:
-            resized_bg = cv2.resize(background, (captcha_image.shape[1], captcha_image.shape[0]))
-            diff = cv2.absdiff(captcha_image, resized_bg)
+            resized_bg = cv2.resize(background, (captcha_image_resized.shape[1], captcha_image_resized.shape[0]))
+            diff = cv2.absdiff(captcha_image_resized, resized_bg)
             gray_diff = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
             score = np.sum(gray_diff)
             if score < min_diff:
@@ -139,18 +143,24 @@ class OCRApp(tk.Tk):
 
         if best_background is not None:
             return self.remove_background_keep_original_colors(captcha_image, best_background)
-        return self.denoise_image(captcha_image)  # Apply denoise after background removal
+        return self.denoise_image(captcha_image)
 
     def remove_background_keep_original_colors(self, captcha_image, background_image):
         diff = cv2.absdiff(captcha_image, background_image)
         gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
-        _, mask = cv2.threshold(gray, 30, 255, cv2.THRESH_BINARY)
+
+        # Use faster thresholding method
+        _, mask = cv2.threshold(gray, 30, 255, cv2.THRESH_BINARY_INV)
         result = cv2.bitwise_and(captcha_image, captcha_image, mask=mask)
+        
+        # Optional: convert all white pixels to black to remove residuals
         result[np.all(result == [255, 255, 255], axis=-1)] = [0, 0, 0]
+
         return self.denoise_image(result)
 
     def denoise_image(self, image):
-        return cv2.fastNlMeansDenoisingColored(image, None, 10, 10, 7, 21)  # Faster and effective denoising
+        # Fast denoising method from OpenCV
+        return cv2.fastNlMeansDenoisingColored(image, None, 10, 10, 7, 21)
 
     def start_automatic_process(self):
         self.start_button.config(state=tk.DISABLED)
@@ -180,8 +190,10 @@ class OCRApp(tk.Tk):
                 if captcha_image is None:
                     continue
 
+                # Remove background and denoise the image
                 captcha_image = self.remove_background(captcha_image)
 
+                # Model prediction
                 num1, operation, num2 = model.predict(captcha_image)
                 result = self.calculate_result(num1, operation, num2)
                 print(f"العملية: {num1} {operation} {num2} = {result}")
@@ -198,4 +210,18 @@ class OCRApp(tk.Tk):
             except Exception as e:
                 print(f"Error during process: {e}")
 
-    def
+    def calculate_result(self, num1, operation, num2):
+        if operation == "+":
+            return num1 + num2
+        elif operation == "-":
+            return num1 - num2
+        elif operation == "×":
+            return num1 * num2
+        else:
+            raise ValueError("عملية غير معروفة")
+
+
+app = OCRApp()
+app.mainloop()
+
+driver.quit()
