@@ -1,4 +1,4 @@
-name: Build Windows Desktop Application 
+name: Build exe
 
 on:
   push:
